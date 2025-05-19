@@ -8,7 +8,8 @@ Transaction::Transaction() :
     amount(0.0),
     timestamp(time(NULL)),
     isSuccessful(false),
-    description("") {}
+    description(""),
+    status(PENDING) {}
 
 Transaction::Transaction(const std::string& transactionId,
                        const std::string& senderWalletId,
@@ -21,7 +22,8 @@ Transaction::Transaction(const std::string& transactionId,
     amount(amount),
     timestamp(time(NULL)),
     isSuccessful(false),
-    description(description) {}
+    description(description),
+    status(PENDING) {}
 
 std::string Transaction::getTransactionId() const {
     return transactionId;
@@ -51,8 +53,35 @@ std::string Transaction::getDescription() const {
     return description;
 }
 
+TransactionStatus Transaction::getStatus() const {
+    return status;
+}
+
+std::string Transaction::getStatusString() const {
+    switch(status) {
+        case PENDING:
+            return "Pending";
+        case COMPLETED:
+            return "Completed";
+        case FAILED:
+            return "Failed";
+        case CANCELLED:
+            return "Cancelled";
+        default:
+            return "Unknown";
+    }
+}
+
 void Transaction::setIsSuccessful(bool isSuccessful) {
     this->isSuccessful = isSuccessful;
+    // Update status based on success flag
+    this->status = isSuccessful ? COMPLETED : FAILED;
+}
+
+void Transaction::setStatus(TransactionStatus status) {
+    this->status = status;
+    // Update isSuccessful to maintain backward compatibility
+    this->isSuccessful = (status == COMPLETED);
 }
 
 Wallet::Wallet() : 

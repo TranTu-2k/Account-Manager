@@ -38,28 +38,65 @@ public:
                           
     bool login(const std::string& username, const std::string& password);
     void logout();
-    bool changePassword(const std::string& oldPassword, const std::string& newPassword);
-    bool resetPassword(const std::string& username);
+    bool changePassword(const std::string& oldPassword, const std::string& newPassword, const std::string& otpCode);
+    bool resetPassword(const std::string& username, const std::string& otpCode);
 
+    // Simple OTP methods
     bool generateOTP(const std::string& username, const std::string& purpose);
     bool verifyOTP(const std::string& username, const std::string& otpCode);
+
+    // TOTP (Two-Factor Authentication) methods
+    bool setupTOTP(const std::string& username);
+    bool verifyTOTP(const std::string& username, const std::string& totpCode);
+    bool disableTOTP(const std::string& username);
+    bool isTOTPEnabled(const std::string& username);
 
     std::string createWallet(const std::string& ownerUsername);
     double getWalletBalance(const std::string& walletId);
     Wallet* getCurrentUserWallet();
     std::vector<Transaction> getTransactionHistory(const std::string& walletId);
+    
+    // Transaction status related methods
+    Transaction* getTransaction(const std::string& transactionId);
+    std::string getTransactionStatusString(const std::string& transactionId);
+    
+    // Transaction reporting methods
+    void displayTransactionSummary(const std::string& walletId);
+    void displayTransactionDetails(const std::string& transactionId);
+    
+    // Filter transactions by status
+    std::vector<Transaction> getTransactionsByStatus(const std::string& walletId, TransactionStatus status);
+    
+    // Admin function to add funds to any wallet
+    bool adminAddFundsToWallet(const std::string& walletId, double amount, const std::string& otpCode);
+    
+    // Original single-step transfer method
     bool transferPoints(const std::string& receiverWalletId,
                        double amount,
                        const std::string& otpCode,
                        const std::string& description = "");
+                       
+    // New two-phase OTP transfer methods
+    bool initiateTransfer(const std::string& receiverWalletId, 
+                         double amount,
+                         const std::string& description = "");
+                         
+    bool confirmTransfer(const std::string& receiverWalletId,
+                        double amount,
+                        const std::string& otpCode,
+                        const std::string& description = "");
 
     std::vector<User> getAllUsers();
+    std::vector<Wallet> getAllWallets();
     bool isAdmin() const;
     bool isLoggedIn() const;
     std::string getCurrentUser() const;
     
-    // Getter for DataManager
+    // Getter for DataManager - non-const version
     DataManager& getDataManager() { return dataManager; }
+    
+    // Getter for DataManager - const version (to fix compiler error)
+    const DataManager& getDataManager() const { return dataManager; }
 };
 
 #endif 

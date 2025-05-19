@@ -5,6 +5,14 @@
 #include <vector>
 #include <ctime>
 
+// Enum for transaction status
+enum TransactionStatus {
+    PENDING,
+    COMPLETED,
+    FAILED,
+    CANCELLED
+};
+
 class Transaction {
 private:
     std::string transactionId;
@@ -14,6 +22,7 @@ private:
     time_t timestamp;
     bool isSuccessful;
     std::string description;
+    TransactionStatus status;
 
 public:
     Transaction();
@@ -31,8 +40,13 @@ public:
     time_t getTimestamp() const;
     bool getIsSuccessful() const;
     std::string getDescription() const;
+    TransactionStatus getStatus() const;
+    
+    // Convert status to string representation
+    std::string getStatusString() const;
 
     void setIsSuccessful(bool isSuccessful);
+    void setStatus(TransactionStatus status);
 };
 
 class Wallet {

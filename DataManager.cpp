@@ -136,6 +136,15 @@ User* DataManager::getUser(const std::string& username) {
     return NULL;
 }
 
+// Add const version of getUser
+const User* DataManager::getUser(const std::string& username) const {
+    std::map<std::string, User>::const_iterator it = users.find(username);
+    if (it != users.end()) {
+        return &(it->second);
+    }
+    return NULL;
+}
+
 std::vector<User> DataManager::getAllUsers() const {
     std::vector<User> userList;
     for (std::map<std::string, User>::const_iterator it = users.begin(); it != users.end(); ++it) {
@@ -298,7 +307,7 @@ bool DataManager::loadData() {
             while (std::getline(transactionFile, line)) {
                 std::stringstream ss(line);
                 std::string transactionId, senderWalletId, receiverWalletId, amountStr;
-                std::string timestampStr, isSuccessfulStr, description;
+                std::string timestampStr, isSuccessfulStr, statusStr, description;
                 
                 std::getline(ss, transactionId, ',');
                 std::getline(ss, senderWalletId, ',');
@@ -306,6 +315,7 @@ bool DataManager::loadData() {
                 std::getline(ss, amountStr, ',');
                 std::getline(ss, timestampStr, ',');
                 std::getline(ss, isSuccessfulStr, ',');
+                std::getline(ss, statusStr, ',');
                 std::getline(ss, description);
                 
                 // Sử dụng atof thay vì stod
@@ -313,6 +323,12 @@ bool DataManager::loadData() {
                 
                 Transaction transaction(transactionId, senderWalletId, receiverWalletId, amount, description);
                 transaction.setIsSuccessful(isSuccessfulStr == "1");
+                
+                // Set transaction status if available
+                if (!statusStr.empty()) {
+                    int statusValue = atoi(statusStr.c_str());
+                    transaction.setStatus(static_cast<TransactionStatus>(statusValue));
+                }
                 
                 transactions[transactionId] = transaction;
             }
@@ -375,6 +391,7 @@ bool DataManager::saveData() {
                                << transaction.getAmount() << ","
                                << transaction.getTimestamp() << ","
                                << (transaction.getIsSuccessful() ? "1" : "0") << ","
+                               << static_cast<int>(transaction.getStatus()) << ","
                                << transaction.getDescription() << std::endl;
             }
             transactionFile.close();
@@ -385,4 +402,14 @@ bool DataManager::saveData() {
         std::cerr << "Error saving data: " << e.what() << std::endl;
         return false;
     }
+}
+
+std::vector<Wallet> DataManager::getAllWallets() const {
+    std::vector<Wallet> result;
+    
+    for (std::map<std::string, Wallet>::const_iterator it = wallets.begin(); it != wallets.end(); ++it) {
+        result.push_back(it->second);
+    }
+    
+    return result;
 } 

@@ -29,12 +29,14 @@ public:
     bool saveUser(const User& user);
     bool deleteUser(const std::string& username);
     User* getUser(const std::string& username);
+    const User* getUser(const std::string& username) const;
     std::vector<User> getAllUsers() const;
     bool userExists(const std::string& username) const;
     
     std::string createWallet(const std::string& ownerUsername);
     Wallet* getWallet(const std::string& walletId);
     Wallet* getWalletByOwner(const std::string& username);
+    std::vector<Wallet> getAllWallets() const;
     bool saveWallet(const Wallet& wallet);
     
     std::string createTransaction(const std::string& senderWalletId, 

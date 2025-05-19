@@ -4,26 +4,72 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <ctime>
 #include "DataManager.h"
 #include "User.h"
 
+// OTP Implementation based on RFC 4226 (HOTP) and RFC 6238 (TOTP)
+// Modified to be C++98 compatible
 class OTP {
 private:
+    // Base32 encoding characters
+    static const std::string BASE32_CHARS;
+    
+    std::string secretKey;
     std::string code;
     std::string targetUser;
     time_t expirationTime;
     std::string purpose;
+    size_t digits;
+    size_t timeInterval; // seconds
+    
+    // Convert a string to base32 encoding
+    std::string toBase32(const std::string& input) const;
+    
+    // Generate HMAC-SHA1 (simplified version without OpenSSL)
+    std::vector<char> hmacSha1(const std::vector<char>& key, const std::vector<char>& message) const;
+    
+    // Convert an integer to bytes
+    std::vector<char> toBytes(unsigned long value) const;
+    
+    // Generate a random base32 string
+    std::string generateRandomBase32(size_t length) const;
+    
+    // Decode a base32 string
+    std::vector<char> decodeBase32(const std::string& base32) const;
+    
+    // Generate TOTP code
+    std::string generateTOTP(time_t timestamp) const;
+    
+    // Dynamic truncation as defined in RFC 4226
+    unsigned long dynamicTruncate(const std::vector<char>& hmacResult) const;
 
 public:
     // Default constructor needed for std::map
     OTP();
     
+    // Constructor for normal OTP usage
     OTP(const std::string& targetUser, const std::string& purpose, int validityInMinutes = 5);
+    
+    // Constructor for TOTP implementation
+    OTP(const std::string& targetUser, const std::string& purpose, 
+        const std::string& secretKey, size_t digits = 6, size_t timeInterval = 30,
+        int validityInMinutes = 5);
 
     std::string getCode() const;
     std::string getTargetUser() const;
     std::string getPurpose() const;
+    std::string getSecretKey() const;
     bool isValid() const;
+    
+    // Verify TOTP code
+    bool verify(const std::string& otpCode, size_t validWindow = 1) const;
+    
+    // Generate a new TOTP code
+    void generateNewCode();
+    
+    // Static method to generate a new secret key
+    static std::string generateSecretKey(size_t length = 16);
 };
 
 class AuthManager {
@@ -61,8 +107,15 @@ public:
                        
     bool resetPassword(const std::string& username);
 
+    // Enhanced OTP methods
     bool generateOTP(const std::string& username, const std::string& purpose);
     bool verifyOTP(const std::string& username, const std::string& otpCode);
+    
+    // Setup TOTP for a user (for 2FA)
+    bool setupTOTP(const std::string& username);
+    
+    // Verify TOTP code for a user (for 2FA)
+    bool verifyTOTP(const std::string& username, const std::string& totpCode);
     
     std::string getCurrentUser() const;
     bool isLoggedIn() const;
